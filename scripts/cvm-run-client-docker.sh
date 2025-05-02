@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -e
+
+export AWS_ACCESS_KEY_ID=test
+export AWS_SECRET_ACCESS_KEY=test
+export AWS_ENDPOINT_URL="http://127.0.0.1:4566"
+export AWS_ACCESS_KEY_ID=test
+export AWS_SECRET_ACCESS_KEY=test
+export AWS_REGION=us-east-1
+export AWS_DEFAULT_REGION=us-east-1
+
+
+for i in 0 1 2
+do
+  echo "Checking hawk\_participant\_${i} at <url>:300${i}/health..."
+  curl -f 127.0.0.1:300${i}/health
+  echo "\n"
+done
+
+echo "All endpoints are healthy. Running now the client..."
+
+
+/bin/client \
+   --request-topic-arn arn:aws:sns:$AWS_REGION:000000000000:iris-mpc-input.fifo \
+   --requests-bucket-name wf-smpcv2-dev-sns-requests \
+   --public-key-base-url "http://127.0.0.1:4566/wf-dev-public-keys" \
+   --response-queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/iris-mpc-results-us-east-1.fifo

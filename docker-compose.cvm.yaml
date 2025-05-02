@@ -1,6 +1,6 @@
 services:
   iris_cvm:
-    image: iris-cvm:v0
+    image: iris-cvm:v1
     ports:
       - "5432:5432"    # Postgres
       - "4566:4566"    # LocalStack edge

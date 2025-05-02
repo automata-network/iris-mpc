@@ -31,6 +31,9 @@ for id in 0 1 2; do
 done
 sleep 10
 
+#4. Start client
+/app/run-client-docker.sh
+
 # Keep container alive
 # wait
 tail -f /dev/null

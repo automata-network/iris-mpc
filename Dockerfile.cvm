@@ -38,13 +38,16 @@ EXPOSE 4566 4571
 
 # hawk CPU server
 COPY scripts/cvm-run-server-docker.sh /app/run-server-docker.sh
+COPY scripts/cvm-run-client-docker.sh /app/run-client-docker.sh
 COPY .cvm.test.env /bin/.test.env
 COPY .cvm.test.hawk0.env /bin/.test.hawk0.env
 COPY .cvm.test.hawk1.env /bin/.test.hawk1.env
 COPY .cvm.test.hawk2.env /bin/.test.hawk2.env
 RUN chmod +x /app/run-server-docker.sh
+RUN chmod +x /app/run-client-docker.sh
 COPY --from=hawk /bin/iris-mpc-hawk /bin/iris-mpc-hawk
 COPY --from=hawk /bin/key-manager /bin/key-manager
+COPY --from=hawk /bin/client /bin/client
 EXPOSE 4000 3000 4001 3001 4002 3002
 
 # HEALTHCHECK --interval=10s --timeout=30s --start-period=40s --retries=5 \
