@@ -1,0 +1,59 @@
+FROM hawk-server-local-build:latest AS hawk
+
+FROM postgres:latest
+
+# install localstack and hawk server deps
+USER root
+RUN apt-get update \
+  && apt-get install -y build-essential python3 python3-dev python3-pip python3-venv pkg-config libvirt-dev curl libssl-dev texinfo libcap2-bin git devscripts debhelper ca-certificates protobuf-compiler wget awscli \
+  && python3 -m venv /venv \
+  && rm -rf /var/lib/apt/lists/*
+ENV PATH="/venv/bin:$PATH"
+RUN pip install awscli-local[ver1]
+RUN pip install localstack[runtime]
+COPY certs /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+# environment variables
+ENV POSTGRES_USER=postgres \
+    POSTGRES_PASSWORD=postgres \
+    SERVICES=kms,s3,secretsmanager,sqs,sns \
+    DEFAULT_REGION=us-east-1 \
+    AWS_ACCESS_KEY_ID=test \
+    AWS_SECRET_ACCESS_KEY=test
+
+# custom entrypoint
+WORKDIR /app
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+# postgre
+COPY scripts/tools/init-db-pgres.sql /docker-entrypoint-initdb.d/
+EXPOSE 5432
+
+# localstack
+COPY scripts/tools/init-localstack.sh /app/init-localstack.sh
+RUN chmod +x /app/init-localstack.sh
+EXPOSE 4566 4571
+
+# hawk CPU server
+COPY scripts/cvm-run-server-docker.sh /app/run-server-docker.sh
+COPY .cvm.test.env /bin/.test.env
+COPY .cvm.test.hawk0.env /bin/.test.hawk0.env
+COPY .cvm.test.hawk1.env /bin/.test.hawk1.env
+COPY .cvm.test.hawk2.env /bin/.test.hawk2.env
+RUN chmod +x /app/run-server-docker.sh
+COPY --from=hawk /bin/iris-mpc-hawk /bin/iris-mpc-hawk
+COPY --from=hawk /bin/key-manager /bin/key-manager
+EXPOSE 4000 3000 4001 3001 4002 3002
+
+# HEALTHCHECK --interval=10s --timeout=30s --start-period=40s --retries=5 \
+#   CMD pg_isready -h localhost -p 5432
+
+# HEALTHCHECK --interval=5s --timeout=25s --start-period=40s --retries=10 \
+#   CMD pg_isready -h localhost -p 5432 \
+#       && awslocal sqs list-queues \
+#       && awslocal s3 ls \
+#       && awslocal kms list-keys
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

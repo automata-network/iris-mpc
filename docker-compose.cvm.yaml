@@ -1,0 +1,32 @@
+services:
+  iris_cvm:
+    image: iris-cvm:v0
+    ports:
+      - "5432:5432"    # Postgres
+      - "4566:4566"    # LocalStack edge
+      - "4571:4571"    # LocalStack Lambda
+      # Hawk CPU server
+      - "3000:3000"
+      - "3001:3001"
+      - "3002:3002"
+      - "4000:4000"
+      - "4001:4001"
+      - "4002:4002"
+    # environment:
+      # Postgres
+      # POSTGRES_USER: postgres
+      # POSTGRES_PASSWORD: postgres
+      # LocalStack
+      # SERVICES: s3,sqs,sns,kms
+      # DEFAULT_REGION: us-east-1
+      # AWS_ACCESS_KEY_ID: test
+      # AWS_SECRET_ACCESS_KEY: test
+    # healthcheck:
+    #   test: >
+    #     pg_isready -h localhost -p 5432 &&
+    #     awslocal s3 ls &&
+    #     awslocal sqs list-queues
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 30s

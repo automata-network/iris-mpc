@@ -189,6 +189,7 @@ async fn rotate_keys(
 
     let mut s3_config_builder = aws_sdk_s3::config::Builder::from(sdk_config);
     let mut sm_config_builder = aws_sdk_secretsmanager::config::Builder::from(sdk_config);
+    println!("endpoint_url: {:?}", endpoint_url);
 
     if let Some(endpoint_url) = endpoint_url.as_ref() {
         s3_config_builder = s3_config_builder.endpoint_url(endpoint_url);
@@ -219,6 +220,7 @@ async fn rotate_keys(
 
         return Ok(());
     }
+    // println!("s3_client: {:?}", s3_client);
     match upload_public_key_to_s3(
         &s3_client,
         bucket_name.as_str(),
